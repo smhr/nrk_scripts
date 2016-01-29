@@ -1,15 +1,19 @@
 #!/bin/bash
-eta_previous="0.01"
-eta="0.10"; b="1.0"
-for i in {1..500}; do
+eta_previous="0"
+eta="0.00001"; b="1.0"
+for i in {1..2}; do
 #	if [ "$eta" = "0.1" ]; then
 	path="../eta$eta_previous""/brf_results/"
 #	else
 #		path="../eta$eta_previous""/all_results/"
 #	fi
 	echo "path = $path"
-	mkdir "eta$eta" && cd "eta$eta"
+	echo "eta = $eta"
+	mkdir "eta$eta"
+	cd "eta$eta"
+	echo $PWD
 	echo "**************"
+	ls $path
 	for input in `ls $path`; do
 	#	if [ -f STOP ]; then echo "**** STOP ****"; exit 1;fi
 		rm ./nrk.ini ./result.dat.org >> ../out.log 2>&1
@@ -27,10 +31,10 @@ for i in {1..500}; do
 		rm nrk.ini.tmp* >> ../out.log 2>&1
 		rm ./result.dat >> ../out.log 2>&1
 		mkdir ./logs >> ../out.log 2>&1 
-		NRK_noloop.exe &> ./logs/"$input".log
+		NRK_AD_brf_no_loop.exe &> ./logs/"$input".log
 	done
 	cd ..
 	echo $PWD
 	eta_previous=$eta
-	eta=`awk "BEGIN {printf \"%.4f\n\", $eta+0.001}"`
+	eta=`awk "BEGIN {printf \"%.5f\n\", $eta+0.00001}"`
 done
