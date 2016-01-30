@@ -7,13 +7,14 @@ for i in {1..2}; do
 #	else
 #		path="../eta$eta_previous""/all_results/"
 #	fi
-	echo "path = $path"
+#	echo "path = $path"
+	echo "**************"
 	echo "eta = $eta"
 	mkdir "eta$eta"
 	cd "eta$eta"
-	echo $PWD
+#	echo $PWD
 	echo "**************"
-	ls $path
+#	ls $path
 	for input in `ls $path`; do
 	#	if [ -f STOP ]; then echo "**** STOP ****"; exit 1;fi
 		rm ./nrk.ini ./result.dat.org >> ../out.log 2>&1
@@ -28,13 +29,13 @@ for i in {1..2}; do
 		sed -e "s/wave_n_up/$wave_n/" nrk.ini.tmp2 > nrk.ini.tmp3
 		sed -e "s/wave_n_low/$wave_n/" nrk.ini.tmp3 > nrk.ini.tmp4
 		sed -e "s/eta/$eta/" nrk.ini.tmp4 > nrk.ini
-		rm nrk.ini.tmp* >> ../out.log 2>&1
+#		rm nrk.ini.tmp* >> ../out.log 2>&1
 		rm ./result.dat >> ../out.log 2>&1
 		mkdir ./logs >> ../out.log 2>&1 
 		NRK_AD_brf_no_loop.exe &> ./logs/"$input".log
 	done
 	cd ..
-	echo $PWD
+#	echo $PWD
 	eta_previous=$eta
 	eta=`awk "BEGIN {printf \"%.5f\n\", $eta+0.00001}"`
 done

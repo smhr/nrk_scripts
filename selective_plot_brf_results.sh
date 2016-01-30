@@ -8,11 +8,11 @@
 
 if [ $4 = "nt" ]; then
 ## without legend
-ls brf_results/*"$1"* | sed 's/$/\"/' | sed 's/^/\"/' | sed "s/$/ u 1:"$2" t \"\" w "$3", /" | tr '\n' ' ' | sed 's/...$//' | sed 's/^/plot /' > temp.plot
+ls brf_results/"$1"* | sed 's/$/\"/' | sed 's/^/\"/' | sed "s/$/ u 1:"$2" t \"\" w "$3", /" | tr '\n' ' ' | sed 's/...$//' | sed 's/^/plot /' > temp.plot
 
 elif [ $4 = "t" ]; then
 ## with legend
-ls brf_results/*"$1"* | sed 's/$/\"/' | sed 's/^/\"/' | sed "s/$/ u 1:"$2" w "$3", /" | tr '\n' ' ' | sed 's/...$//' | sed 's/^/plot /' > temp.plot
+ls brf_results/"$1"* | sed 's/$/\"/' | sed 's/^/\"/' | sed "s/$/ u 1:"$2" w "$3", /" | tr '\n' ' ' | sed 's/...$//' | sed 's/^/plot /' > temp.plot
 fi
 
 echo "" >> temp.plot
