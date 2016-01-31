@@ -1,7 +1,7 @@
 #!/bin/bash
 eta_previous="0"
-eta="0.00001"; b="1.0"
-for i in {1..2}; do
+eta="0.10000"; b="1.0"
+for i in {1..10}; do
 #	if [ "$eta" = "0.1" ]; then
 	path="../eta$eta_previous""/brf_results/"
 #	else
@@ -16,7 +16,7 @@ for i in {1..2}; do
 	echo "**************"
 #	ls $path
 	for input in `ls $path`; do
-	#	if [ -f STOP ]; then echo "**** STOP ****"; exit 1;fi
+#		if [ -f "STOP" ]; then echo "**** STOP ****"; exit 1;fi
 		rm ./nrk.ini ./result.dat.org >> ../out.log 2>&1
 		cp ../nrk.ini.org .
 		cp -v $path"$input" ./result.dat.org >> ../out.log 2>&1
@@ -36,6 +36,6 @@ for i in {1..2}; do
 	done
 	cd ..
 #	echo $PWD
-	eta_previous=$eta
-	eta=`awk "BEGIN {printf \"%.5f\n\", $eta+0.00001}"`
+#	eta_previous=$eta  # comment this line to use the first eta as a guess persistently.
+	eta=`awk "BEGIN {printf \"%.5f\n\", $eta+0.1}"`
 done
