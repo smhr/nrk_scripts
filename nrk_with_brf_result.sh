@@ -6,7 +6,7 @@ if [ "$1" == "-h" ] ; then
 fi
 eta_previous="0" ## we use this eta value for initial guess
 eta_step="$1"
-eta=`awk "BEGIN {printf \"%012.5f\n\", $eta_previous+$eta_step}"`
+eta=`awk "BEGIN {printf \"%011.5f\n\", $eta_previous+$eta_step}"`
  b="1.0"
 for i in `eval echo {1.."$2"}` ; do
 #	if [ "$eta" = "0.1" ]; then
@@ -16,7 +16,7 @@ for i in `eval echo {1.."$2"}` ; do
 #	fi
 #	echo "path = $path"
 	echo "**************"
-	echo "**************" >> ../out.log 2>&1
+# 	echo "**************" >> ../out.log 2>&1
 	echo "eta = $eta"
 	mkdir "eta$eta"
 	cd "eta$eta"
@@ -29,8 +29,10 @@ for i in `eval echo {1.."$2"}` ; do
 		cp ../nrk.ini.org .
 		cp -v $path"$input" ./result.dat.org >> ../out.log 2>&1
 #	echo "cp $path""$input"" ./result.dat.org"
-		wave_n=`echo $input | awk -F '[_]' '{print $1}'`
-		ome2=`echo $input | awk -F '[_]' '{print $2}'`
+#		wave_n=`echo $input | awk -F '[_]' '{print $1}'`
+		wave_n=`echo $input | awk -F '[_]' '{print $2}'`
+#		ome2=`echo $input | awk -F '[_]' '{print $2}'`
+		ome2=`echo "-"$input | awk -F '[_]' '{print $1}'`
 		echo "eta, wave_n, ome2 =  ""$eta"'        '"$wave_n"'       '"$ome2"
 		echo "eta, wave_n, ome2 =  ""$eta"'        '"$wave_n"'       '"$ome2" >> ../out.log 2>&1
 		sed -e "s/ome2_up/$ome2/" nrk.ini.org > nrk.ini.tmp1
@@ -45,6 +47,6 @@ for i in `eval echo {1.."$2"}` ; do
 	done
 	cd ..
 #	echo $PWD
-#	eta_previous=$eta  # comment this line to use the first eta as a guess persistently.
-	eta=`awk "BEGIN {printf \"%012.5f\n\", $eta+$eta_step}"`
+	eta_previous=$eta  # comment this line to use the first eta as a guess persistently.
+	eta=`awk "BEGIN {printf \"%011.5f\n\", $eta+$eta_step}"`
 done
