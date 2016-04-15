@@ -151,17 +151,38 @@
 	####################################### Preparing loop
 	eta=`awk "BEGIN {printf \"%011.5f\n\", $eta}"`
 	cd "eta$eta"
+# 	ls ./brf_results -x1
 	leftLoop=`ls ./brf_results -x1 | tail -2 | head -1`
+	rightLoop=`ls ./brf_results -x1 | tail -1`
+	ome2Left=`echo "-"$leftLoop | awk -F '[_]' '{print $1}'`
+	wave_nLeft=`echo $leftLoop | awk -F '[_]' '{print $2}'`
+	ome2Right=$(echo "-"$rightLoop | awk -F '[_]' '{print $1}')
+	wave_nRight=$(echo $rightLoop | awk -F '[_]' '{print $2}')
+	
+	if [ ! $ome2Left = $ome2Right ]; then
+# 	ls ./brf_results -x1 | tail -3
+		leftLoop=$(ls ./brf_results -x1 | tail -3 | head -1)
+		rightLoop=$(ls ./brf_results -x1 | tail -2 | head -1)
+		ome2Left=`echo "-"$leftLoop | awk -F '[_]' '{print $1}'`
+		wave_nLeft=`echo $leftLoop | awk -F '[_]' '{print $2}'`
+		ome2Right=$(echo "-"$rightLoop | awk -F '[_]' '{print $1}')
+		wave_nRight=$(echo $rightLoop | awk -F '[_]' '{print $2}')
+	fi
+# 	echo "$leftLoop"" #### ""$rightLoop"
+# 	echo "$ome2Left $wave_nLeft $ome2Right $wave_nRight"
+# 	exit
 	[ -d "loop" ] && rm -r ./loop
 	mkdir loop
 	cd loop
 	cp ../brf_results/$leftLoop result.dat.org
 	##################### left loop
-	ome2=`echo "-"$leftLoop | awk -F '[_]' '{print $1}'`
-	wave_n=`echo $leftLoop | awk -F '[_]' '{print $2}'`
+# 	ome2Left=`echo "-"$leftLoop | awk -F '[_]' '{print $1}'`
+# 	wave_nLeft=`echo $leftLoop | awk -F '[_]' '{print $2}'`
+# 	ome2Right=$(echo "-"$rightLoop | awk -F '[_]' '{print $1}')
+# 	wave_nRight=$(echo $rightLoop | awk -F '[_]' '{print $2}')
 	
 	# echo $leftLoop
-	# echo $ome2
+	# echo $ome2Left
 	# echo $wave_n
 	# exit
 	echo "$meshNumber         # Number of meshpoints
@@ -172,8 +193,8 @@
 	1.d0                      # convergence speed (do not change unless good reason)
 	1.d-10                    # desired accuracy of solution
 	$bcType                   # bcType
-	$ome2 $ome2minInLoop $ome2stepInLoop     # ome2_up, ome2_low, ome2_step
-	$wave_n  $wave_n 0.01 # wave_n_up, wave_n_low, wave_n_step
+	$ome2Left $ome2minInLoop $ome2stepInLoop     # ome2_up, ome2_low, ome2_step
+	$wave_nLeft  $wave_nLeft 0.01 # wave_n_up, wave_n_low, wave_n_step
 	$magnet                   # magnetic field
 	$eta                      # eta
 	$adLimit".d0"             # ADlimit
@@ -182,14 +203,14 @@
 	NRK_AD_brf_loop.exe | grep "yes"
 	# cp om-k.dat om-k.dat.l
 	##################### right loop
-	rightLoop=`ls ../brf_results -x1 | tail -1`
+	# rightLoop=`ls ../brf_results -x1 | tail -1`
 	# echo $rightLoop
 	# ls ..
 	# pwd
 	cp ../brf_results/$rightLoop result.dat.org
 	######################
-	ome2=$(echo "-"$rightLoop | awk -F '[_]' '{print $1}')
-	wave_n=$(echo $rightLoop | awk -F '[_]' '{print $2}')
+# 	ome2Right=$(echo "-"$rightLoop | awk -F '[_]' '{print $1}')
+# 	wave_nRight=$(echo $rightLoop | awk -F '[_]' '{print $2}')
 	echo "$meshNumber         # Number of meshpoints
 	7                         # Number of equations
 	4 3                       # Number of boundary conditions at first meshpoint and final meshpoint
@@ -198,8 +219,8 @@
 	1.d0                      # convergence speed (do not change unless good reason)
 	1.d-10                    # desired accuracy of solution
 	$bcType                   # bcType
-	$ome2 $ome2minInLoop $ome2stepInLoop     # ome2_up, ome2_low, ome2_step
-	$wave_n $wave_n 0.01 # wave_n_up, wave_n_low, wave_n_step
+	$ome2Right $ome2minInLoop $ome2stepInLoop     # ome2_up, ome2_low, ome2_step
+	$wave_nRight $wave_nRight 0.01 # wave_n_up, wave_n_low, wave_n_step
 	$magnet                   # magnetic field
 	$eta                      # eta
 	$adLimit".d0"             # ADlimit
