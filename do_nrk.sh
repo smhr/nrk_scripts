@@ -57,6 +57,7 @@
 ####################################### do_nrk
 	set -u ## exit when the script tries to use undeclared variables
 # 	set -x ## trace what gets executed. Useful for debugging
+	source "$HOME/bin/FUM_PROJ_VARS.sh"
 	if [ "$1" == "-h" ] ; then
 		echo "Usage: `basename $0` [N mesh] [2nd bound] [magnetic fied] [bcType] [ADlimit] [eta] [ome2stepInNoAD] [ome2minInNoAD] [ome2stepInLoop] [ome2minInLoop]"
 		echo "Example: `basename $0` 2001 50.0 0.001 4310 100 100.0 0.002 -0.12 0.0001 -0.12"
@@ -69,10 +70,8 @@
 		exit 1
 	fi
 
-# 	runType="test"
-	runType="production"
-	noADPath="/media/d3/FUM_PROJ/nrk_no_AD"
-	ADPath="/media/d3/FUM_PROJ/nrk_AD"
+	runTypeMode="test"
+# 	runTypeMode="production"
 	meshType="consMesh"
 	# if [ "$meshType" = "consMesh" ] then; MeshSelector="0" ; fi
 	meshNumber="$1"
@@ -91,7 +90,6 @@
 	printInputs 
 	
 	noADPathRunDir="$noADPath""/$meshType""/$meshNB""/b$magnet"
-	reportImagesPath="/media/d1/Mohammad/PROJECTS/FUM/docs/reports/images"
 	
 	####################################### Preparing No_AD calculation
 	echo -e "\nGoing to $noADPathRunDir\n"
@@ -130,7 +128,7 @@
 	$magnet                   # magnetic field
 	" > nrk.ini_0.6
 	
-	[ $runType = "production" ] &&  nrk_no_AD.sh
+	[ $runTypeMode = "production" ] &&  nrk_no_AD.sh
 	
 	sort -n -k2 om-k.dat > om-k.dat.sorted
 	mv om-k.dat.sorted om-k.dat
@@ -186,7 +184,7 @@
 	$adLimit".d0"             # ADlimit
 	" > nrk.ini.org
 	
-	[ $runType = "production" ] && nrk_with_brf_result.sh $eta 1
+	[ $runTypeMode = "production" ] && nrk_with_brf_result.sh $eta 1
 	else
 	echo -e "eta$eta"" is exist. Ignoring AD no-loop calculation.\n"
 	fi
@@ -214,7 +212,7 @@
 	done
 # 	echo "$leftLoop"" #### ""$rightLoop"
 # 	echo "$ome2Left $wave_nLeft $ome2Right $wave_nRight"
-	[ $runType = "production" ] && [ -d "loop" ] && rm -r ./loop
+	[ $runTypeMode = "production" ] && [ -d "loop" ] && rm -r ./loop
 	mkdir loop
 	cd loop
 	cp ../brf_results/$leftLoop result.dat.org
@@ -234,7 +232,7 @@
 	$adLimit".d0"             # ADlimit
 	" > nrk.ini
 	echo -e "######### Starting AD left loop for ""$leftLoop"" as guess #########\n"
-	[ $runType = "production" ] && NRK_AD_brf_loop.exe | grep "yes"
+	[ $runTypeMode = "production" ] && NRK_AD_brf_loop.exe | grep "yes"
 	# cp om-k.dat om-k.dat.l
 	##################### right loop
 	cp ../brf_results/$rightLoop result.dat.org
@@ -254,7 +252,7 @@
 	$adLimit".d0"             # ADlimit
 	" > nrk.ini
 	echo -e "######### Starting AD right loop for ""$rightLoop"" as guess #########\n"
-	[ $runType = "production" ] && NRK_AD_brf_loop.exe | grep "yes"
+	[ $runTypeMode = "production" ] && NRK_AD_brf_loop.exe | grep "yes"
 	######################
 	
 	cat om-k.dat >> ../om-k.dat
