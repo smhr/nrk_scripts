@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 ####################################### printInputs
 	function printInputs {
@@ -19,8 +19,44 @@
 	##############################################
 	"
 	}
+####################################### omPlot	
+	function omPlot {
+	every="1"; with="l"; lw="3"
+	fontSize="20", font="Courier"
+	echo "
+	set fontpath '/usr/local/texlive/2013/texmf-dist/fonts/type1/public/amsfonts/cm/'
+	set terminal post eps enhanced color fontfile 'cmsy10.pfb'
+	
+	set style fill  transparent solid 0.35 noborder
+	set style circle radius 0.005
+	
+	set key font \"$font,17\"
+	set ylabel font \"$font,$fontSize\"
+	set xlabel font \"$font,$fontSize\"
+	set xtics font \"$font,$fontSize\"
+	set ytics font \"$font,$fontSize\"
+	set size ratio 1
+	set grid
+	
+	set xl 'k'
+	set yl '{/Symbol w}^2' offset -1
+	set yr [-.2:0]
+	set key center bottom title \"B = $magnet \"
+
+	" > temp.plot
+	echo "set output \"b$magnet""bc$bcType""ADl$adLimit"".eps\"" >> temp.plot
+
+# 	ls eta*/om-k.dat | sed 's/$/\"/' | sed 's/^/\"/' | sed "s/$/ every "$every" u 2:3 t \"\" w "$with", /" | tr '\n' ' ' | sed 's/...$//' | sed 's/^/plot /' >> temp.plot
+	ls eta*/om-k.dat | sed 's/$/\"/' | sed 's/^/\"/' | sed "s/$/ u 2:3 w "$with" lw "$lw", /" | tr '\n' ' ' | sed 's/...$//' | sed 's/^/plot /' >> temp.plot
+
+	echo "" >> temp.plot
+	gnuplot temp.plot
+	rm temp.plot
+	}
 
 ####################################### do_nrk
+	set -u ## exit when the script tries to use undeclared variables
+# 	set -x ## trace what gets executed. Useful for debugging
 	if [ "$1" == "-h" ] ; then
 		echo "Usage: `basename $0` [N mesh] [2nd bound] [magnetic fied] [bcType] [ADlimit] [eta] [ome2stepInNoAD] [ome2minInNoAD] [ome2stepInLoop] [ome2minInLoop]"
 		echo "Example: `basename $0` 2001 50.0 0.001 4310 100 100.0 0.002 -0.12 0.0001 -0.12"
@@ -32,7 +68,9 @@
 		echo "Help: `basename $0` -h"
 		exit 1
 	fi
-# 	echo $@
+
+# 	runType="test"
+	runType="production"
 	noADPath="/media/d3/FUM_PROJ/nrk_no_AD"
 	ADPath="/media/d3/FUM_PROJ/nrk_AD"
 	meshType="consMesh"
@@ -53,6 +91,7 @@
 	printInputs 
 	
 	noADPathRunDir="$noADPath""/$meshType""/$meshNB""/b$magnet"
+	reportImagesPath="/media/d1/Mohammad/PROJECTS/FUM/docs/reports/images"
 	
 	####################################### Preparing No_AD calculation
 	echo -e "\nGoing to $noADPathRunDir\n"
@@ -91,7 +130,7 @@
 	$magnet                   # magnetic field
 	" > nrk.ini_0.6
 	
-	nrk_no_AD.sh
+	[ $runType = "production" ] &&  nrk_no_AD.sh
 	
 	sort -n -k2 om-k.dat > om-k.dat.sorted
 	mv om-k.dat.sorted om-k.dat
@@ -147,7 +186,7 @@
 	$adLimit".d0"             # ADlimit
 	" > nrk.ini.org
 	
-	nrk_with_brf_result.sh $eta 1
+	[ $runType = "production" ] && nrk_with_brf_result.sh $eta 1
 	else
 	echo -e "eta$eta"" is exist. Ignoring AD no-loop calculation.\n"
 	fi
@@ -161,33 +200,25 @@
 	wave_nLeft=`echo $leftLoop | awk -F '[_]' '{print $2}'`
 	ome2Right=$(echo "-"$rightLoop | awk -F '[_]' '{print $1}')
 	wave_nRight=$(echo $rightLoop | awk -F '[_]' '{print $2}')
-	
-	if [ ! $ome2Left = $ome2Right ]; then
-# 	ls ./brf_results -x1 | tail -3
-		leftLoop=$(ls ./brf_results -x1 | tail -3 | head -1)
-		rightLoop=$(ls ./brf_results -x1 | tail -2 | head -1)
+
+	n3LinesFromEnd=3
+	while [ ! $ome2Left = $ome2Right ]; do
+		n2LinesFromEnd=$(( $n3LinesFromEnd - 1 ))
+		leftLoop=$(ls ./brf_results -x1 | tail -$n3LinesFromEnd | head -1)
+		rightLoop=$(ls ./brf_results -x1 | tail -$n2LinesFromEnd | head -1)
 		ome2Left=`echo "-"$leftLoop | awk -F '[_]' '{print $1}'`
 		wave_nLeft=`echo $leftLoop | awk -F '[_]' '{print $2}'`
 		ome2Right=$(echo "-"$rightLoop | awk -F '[_]' '{print $1}')
 		wave_nRight=$(echo $rightLoop | awk -F '[_]' '{print $2}')
-	fi
+		n3LinesFromEnd=$(( $n3LinesFromEnd + 1 ))
+	done
 # 	echo "$leftLoop"" #### ""$rightLoop"
 # 	echo "$ome2Left $wave_nLeft $ome2Right $wave_nRight"
-# 	exit
-	[ -d "loop" ] && rm -r ./loop
+	[ $runType = "production" ] && [ -d "loop" ] && rm -r ./loop
 	mkdir loop
 	cd loop
 	cp ../brf_results/$leftLoop result.dat.org
 	##################### left loop
-# 	ome2Left=`echo "-"$leftLoop | awk -F '[_]' '{print $1}'`
-# 	wave_nLeft=`echo $leftLoop | awk -F '[_]' '{print $2}'`
-# 	ome2Right=$(echo "-"$rightLoop | awk -F '[_]' '{print $1}')
-# 	wave_nRight=$(echo $rightLoop | awk -F '[_]' '{print $2}')
-	
-	# echo $leftLoop
-	# echo $ome2Left
-	# echo $wave_n
-	# exit
 	echo "$meshNumber         # Number of meshpoints
 	7                         # Number of equations
 	4 3                       # Number of boundary conditions at first meshpoint and final meshpoint
@@ -203,17 +234,11 @@
 	$adLimit".d0"             # ADlimit
 	" > nrk.ini
 	echo -e "######### Starting AD left loop for ""$leftLoop"" as guess #########\n"
-	NRK_AD_brf_loop.exe | grep "yes"
+	[ $runType = "production" ] && NRK_AD_brf_loop.exe | grep "yes"
 	# cp om-k.dat om-k.dat.l
 	##################### right loop
-	# rightLoop=`ls ../brf_results -x1 | tail -1`
-	# echo $rightLoop
-	# ls ..
-	# pwd
 	cp ../brf_results/$rightLoop result.dat.org
-	######################
-# 	ome2Right=$(echo "-"$rightLoop | awk -F '[_]' '{print $1}')
-# 	wave_nRight=$(echo $rightLoop | awk -F '[_]' '{print $2}')
+
 	echo "$meshNumber         # Number of meshpoints
 	7                         # Number of equations
 	4 3                       # Number of boundary conditions at first meshpoint and final meshpoint
@@ -229,12 +254,23 @@
 	$adLimit".d0"             # ADlimit
 	" > nrk.ini
 	echo -e "######### Starting AD right loop for ""$rightLoop"" as guess #########\n"
-	NRK_AD_brf_loop.exe | grep "yes"
+	[ $runType = "production" ] && NRK_AD_brf_loop.exe | grep "yes"
 	######################
 	
 	cat om-k.dat >> ../om-k.dat
 	sort -n -k2 ../om-k.dat > ../om-k.dat.sorted
 	mv ../om-k.dat.sorted ../om-k.dat
+	
+	########### Preparing plot
+	cd ../..
+	rm ./*.eps
+	[ ! -L "./eta0" ] && ln -s ../eta0 .
+	echo " ########## Ploting ##########"
+	omPlot
+	pstool.sh > /dev/null
+	cp ./*.eps $reportImagesPath
+	
+	
 	
 #######################################
 # do_nrk 2001 50.0 0.001 4310 100 0.001 0.002 -0.12 0.0001 -0.14
@@ -243,16 +279,3 @@
 # do_nrk 2001 50.0 0.001 4310 100 1.0 0.002 -0.12 0.0001 -0.12
 # do_nrk 2001 50.0 0.001 4310 100 10.0 0.002 -0.12 0.0001 -0.12
 # do_nrk 2001 50.0 0.001 4310 100 100.0 0.002 -0.12 0.0001 -0.12
-
-# do_nrk 2001 50.0 2.0 4310 100 1.0 0.002 -0.0905 0.0005 -0.1
-	# meshNumber="2001"
-	# secondBound="50.0"
-	# magnet="2.0"
-	# bcType="4310"
-	# adLimit="100"
-	# eta="1.0"
-	# 
-	# ome2stepInNoAD='0.002'
-	# ome2minInNoAD='-0.0905'
-	# ome2stepInLoop='0.0005'
-	# ome2minInLoop='-0.1'
