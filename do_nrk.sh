@@ -92,6 +92,7 @@
 	" > nrk.ini_0.6
 	
 	nrk_no_AD.sh
+	
 	sort -n -k2 om-k.dat > om-k.dat.sorted
 	mv om-k.dat.sorted om-k.dat
 	
@@ -173,7 +174,7 @@
 # 	echo "$leftLoop"" #### ""$rightLoop"
 # 	echo "$ome2Left $wave_nLeft $ome2Right $wave_nRight"
 # 	exit
-# 	[ -d "loop" ] && rm -r ./loop
+	[ -d "loop" ] && rm -r ./loop
 	mkdir loop
 	cd loop
 	cp ../brf_results/$leftLoop result.dat.org
@@ -202,7 +203,7 @@
 	$adLimit".d0"             # ADlimit
 	" > nrk.ini
 	echo -e "######### Starting AD left loop for ""$leftLoop"" as guess #########\n"
-# 	NRK_AD_brf_loop.exe | grep "yes"
+	NRK_AD_brf_loop.exe | grep "yes"
 	# cp om-k.dat om-k.dat.l
 	##################### right loop
 	# rightLoop=`ls ../brf_results -x1 | tail -1`
@@ -228,7 +229,7 @@
 	$adLimit".d0"             # ADlimit
 	" > nrk.ini
 	echo -e "######### Starting AD right loop for ""$rightLoop"" as guess #########\n"
-# 	NRK_AD_brf_loop.exe | grep "yes"
+	NRK_AD_brf_loop.exe | grep "yes"
 	######################
 	
 	cat om-k.dat >> ../om-k.dat
