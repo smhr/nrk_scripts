@@ -59,19 +59,19 @@
 # 	set -x ## trace what gets executed. Useful for debugging
 	source "$HOME/bin/FUM_PROJ_VARS.sh"
 	if [ "$1" == "-h" ] ; then
-		echo "Usage: `basename $0` [N mesh] [2nd bound] [magnetic fied] [bcType] [ADlimit] [eta] [ome2stepInNoAD] [ome2minInNoAD] [ome2stepInLoop] [ome2minInLoop]"
-		echo "Example: `basename $0` 2001 50.0 0.001 4310 100 100.0 0.002 -0.12 0.0001 -0.12"
+		echo "Usage: `basename $0` [N mesh] [2nd bound] [magnetic fied] [bcType] [ADlimit] [eta] [ome2stepInNoAD] [ome2minInNoAD] [ome2stepInLoop] [ome2minInLoop] [waveLeft] [waveRight]"
+		echo "Example: `basename $0` 2001 50.0 0.001 4310 100 100.0 0.002 -0.12 0.0001 -0.12 0.1 0.6"
 		exit 0
 	fi
 
-	if [ ! $# -eq 10 ]; then
-		echo "Must have 10 input arguments!"
+	if [ ! $# -eq 12 ]; then
+		echo "Must have 12 input arguments!"
 		echo "Help: `basename $0` -h"
 		exit 1
 	fi
 
-	runTypeMode="test"
-# 	runTypeMode="production"
+#	runTypeMode="test"
+ 	runTypeMode="production"
 	meshType="consMesh"
 	# if [ "$meshType" = "consMesh" ] then; MeshSelector="0" ; fi
 	meshNumber="$1"
@@ -87,6 +87,8 @@
 	ome2minInNoAD="$8"
 	ome2stepInLoop="$9"
 	ome2minInLoop=${10}
+	waveLeft=${11}
+	waveRight=${12}
 	printInputs 
 	
 	noADPathRunDir="$noADPath""/$meshType""/$meshNB""/b$magnet"
@@ -111,7 +113,7 @@
 	1.d-7                    # desired accuracy of solution
 	0                         # mesh_selector
 	-0.001 $ome2minInNoAD $ome2stepInNoAD     # ome2_up, ome2_low, ome2_step
-	0.2 0.2 0.010             # wave_n_up, wave_n_low, Dummy[wave_n_step]
+	$waveLeft $waveLeft 0.010             # wave_n_up, wave_n_low, Dummy[wave_n_step]
 	$magnet                   # magnetic field
 	" > nrk.ini_0.1
 	
@@ -124,7 +126,7 @@
 	1.d-7                    # desired accuracy of solution
 	0                         # mesh_selector
 	-0.001 $ome2minInNoAD $ome2stepInNoAD     # ome2_up, ome2_low, ome2_step
-	0.6 0.6 0.010             # wave_n_up, wave_n_low, Dummy[wave_n_step]
+	$waveRight $waveRight 0.010             # wave_n_up, wave_n_low, Dummy[wave_n_step]
 	$magnet                   # magnetic field
 	" > nrk.ini_0.6
 	
@@ -138,13 +140,14 @@
 	
 	else
 	
-	echo -e "$noADPathRunDir""/brf_results is exist. Ignoring No_AD calculation.\n"
+	echo -e "$noADPathRunDir""/brf_results exists. Ignoring No_AD calculation.\n"
 	
 # 	mkdir eta0; cd eta0; ln -s ../om-k.dat .; cd ..
 # 	omplot.sh 2 3 p t 1
 	
 	fi
 	
+	[ "$magnet" -eq 0 ] && exit
 	####################################### Preparing AD calculation
 	eta=`awk "BEGIN {printf \"%011.5f\n\", $eta}"`
 	let meshNumber=meshNumber-1
@@ -186,7 +189,7 @@
 	
 	[ $runTypeMode = "production" ] && nrk_with_brf_result.sh $eta 1
 	else
-	echo -e "eta$eta"" is exist. Ignoring AD no-loop calculation.\n"
+	echo -e "eta$eta"" exists. Ignoring AD no-loop calculation.\n"
 	fi
 	####################################### Preparing loop
 	eta=`awk "BEGIN {printf \"%011.5f\n\", $eta}"`
@@ -212,7 +215,7 @@
 	done
 # 	echo "$leftLoop"" #### ""$rightLoop"
 # 	echo "$ome2Left $wave_nLeft $ome2Right $wave_nRight"
-	[ $runTypeMode = "production" ] && [ -d "loop" ] && rm -r ./loop
+	if [ $runTypeMode = "production" ] && [ ! -d "loop" ]; then #&& rm -r ./loop
 	mkdir loop
 	cd loop
 	cp ../brf_results/$leftLoop result.dat.org
@@ -258,9 +261,14 @@
 	cat om-k.dat >> ../om-k.dat
 	sort -n -k2 ../om-k.dat > ../om-k.dat.sorted
 	mv ../om-k.dat.sorted ../om-k.dat
+	cd ../..
+	else
+	echo -e "loop directory"" exists. Ignoring AD loop calculation.\n"
+	cd ..
+	fi
 	
 	########### Preparing plot
-	cd ../..
+# 	cd ../..
 	rm ./*.eps
 	[ ! -L "./eta0" ] && ln -s ../eta0 .
 	echo " ########## Ploting ##########"
